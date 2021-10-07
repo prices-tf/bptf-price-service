@@ -8,11 +8,6 @@ services:
       POSTGRES_USER: test
       POSTGRES_PASSWORD: test
       POSTGRES_DB: test
-  redis:
-    image: redis:alpine
-    command: redis-server --requirepass test
-    ports:
-    - "6379:6379"
   rabbitmq:
     image: rabbitmq:3.8.19-management-alpine
     ports:
