@@ -93,8 +93,10 @@ export class PriceService {
           `("sku") DO UPDATE SET
               "buyHalfScrap" = EXCLUDED."buyHalfScrap",
               "buyKeys" = EXCLUDED."buyKeys",
+              "buyKeyHalfScrap" = EXCLUDED."buyKeyHalfScrap",
               "sellHalfScrap" = EXCLUDED."sellHalfScrap",
               "sellKeys" = EXCLUDED."sellKeys",
+              "sellKeyHalfScrap" = EXCLUDED."sellKeyHalfScrap",
               "updatedAt" = EXCLUDED."updatedAt"
           `,
         )
