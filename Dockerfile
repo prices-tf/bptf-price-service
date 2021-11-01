@@ -1,4 +1,4 @@
-FROM node:16-alpine as builder
+FROM node:17-alpine as builder
 
 ENV NODE_ENV build
 
@@ -13,7 +13,7 @@ COPY ./src .
 
 RUN npm run build
 
-FROM node:16-alpine
+FROM node:17-alpine
 
 ENV NODE_ENV production
 
