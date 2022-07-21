@@ -1,13 +1,12 @@
 import {
   Body,
-  ClassSerializerInterceptor,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
   Post,
   Query,
-  UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
 import { Pagination } from 'nestjs-typeorm-paginate';
@@ -16,7 +15,6 @@ import { SavePriceDto } from './dto/save-price.dto';
 import { Price } from './entities/price.entity';
 import { PriceService } from './price.service';
 
-@UseInterceptors(ClassSerializerInterceptor)
 @Controller('prices')
 export class PriceController {
   constructor(private readonly priceService: PriceService) {}
