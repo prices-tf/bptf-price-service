@@ -4,27 +4,24 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   IPaginationOptions,
   paginate,
   Pagination,
 } from 'nestjs-typeorm-paginate';
-import { DataSource, MoreThanOrEqual, Repository } from 'typeorm';
+import { DataSource, MoreThanOrEqual } from 'typeorm';
 import { SavePriceDto } from './dto/save-price.dto';
 import { Price } from './entities/price.entity';
 
 @Injectable()
 export class PriceService {
   constructor(
-    @InjectRepository(Price)
-    private readonly repository: Repository<Price>,
     private readonly amqpConnection: AmqpConnection,
     private readonly dataSource: DataSource,
   ) {}
 
   getBySKU(sku: string): Promise<Price> {
-    return this.repository.findOne({
+    return this.dataSource.getRepository(Price).findOne({
       where: {
         sku,
       },
@@ -35,7 +32,7 @@ export class PriceService {
     options: IPaginationOptions,
     order?: 'ASC' | 'DESC',
   ): Promise<Pagination<Price>> {
-    return paginate<Price>(this.repository, options, {
+    return paginate<Price>(this.dataSource.getRepository(Price), options, {
       order: {
         updatedAt: order,
       },
@@ -54,7 +51,7 @@ export class PriceService {
       );
     }
 
-    const price = this.repository.create({
+    const price = this.dataSource.getRepository(Price).create({
       sku: data.sku,
       buyHalfScrap: data.buyHalfScrap,
       buyKeys: data.buyKeys,
