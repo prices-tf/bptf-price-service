@@ -4,13 +4,13 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import {
   IPaginationOptions,
   paginate,
   Pagination,
 } from 'nestjs-typeorm-paginate';
-import { Connection, MoreThanOrEqual, Repository } from 'typeorm';
+import { DataSource, MoreThanOrEqual, Repository } from 'typeorm';
 import { SavePriceDto } from './dto/save-price.dto';
 import { Price } from './entities/price.entity';
 
@@ -20,8 +20,7 @@ export class PriceService {
     @InjectRepository(Price)
     private readonly repository: Repository<Price>,
     private readonly amqpConnection: AmqpConnection,
-    @InjectConnection()
-    private readonly connection: Connection,
+    private readonly dataSource: DataSource,
   ) {}
 
   getBySKU(sku: string): Promise<Price> {
@@ -67,7 +66,7 @@ export class PriceService {
       createdAt: data.updatedAt,
     });
 
-    await this.connection.transaction(async (transactionalEntityManager) => {
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
       const match = await transactionalEntityManager.findOne(Price, {
         where: {
           sku: data.sku,
