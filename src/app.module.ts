@@ -1,12 +1,18 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import configuration, { DatabaseConfig } from './common/config/configuration';
+import configuration, {
+  Config,
+  DatabaseConfig,
+  RedisConfig,
+} from './common/config/configuration';
 import { validation } from './common/config/validation';
 import { HealthModule } from './health/health.module';
 import { RabbitMQWrapperModule } from './rabbitmq-wrapper/rabbitmq-wrapper.module';
 import { PriceModule } from './price/price.module';
 import { Price } from './price/entities/price.entity';
+import { BullModule } from '@nestjs/bullmq';
+import { RedisOptions } from 'ioredis';
 
 @Module({
   imports: [
@@ -33,6 +39,38 @@ import { Price } from './price/entities/price.entity';
           autoLoadModels: true,
           synchronize: process.env.TYPEORM_SYNCRONIZE === 'true',
           keepConnectionAlive: true,
+        };
+      },
+    }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService<Config>) => {
+        const redisConfig = configService.get<RedisConfig>('redis');
+
+        let redisOptions: RedisOptions;
+
+        if (redisConfig.isSentinel) {
+          redisOptions = {
+            sentinels: [
+              {
+                host: redisConfig.host,
+                port: redisConfig.port,
+              },
+            ],
+            name: redisConfig.set,
+          };
+        } else {
+          redisOptions = {
+            host: redisConfig.host,
+            port: redisConfig.port,
+            password: redisConfig.password,
+          };
+        }
+
+        return {
+          connection: redisOptions,
+          prefix: 'bull',
         };
       },
     }),

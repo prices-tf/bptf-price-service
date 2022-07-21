@@ -1,5 +1,6 @@
 import { TerminusModule } from '@nestjs/terminus';
 import { Test, TestingModule } from '@nestjs/testing';
+import { BullHealthIndicator } from './bull.health';
 import { HealthController } from './health.controller';
 import { RabbitMQHealthIndicator } from './rabbitmq.health';
 
@@ -12,6 +13,10 @@ describe('HealthController', () => {
       providers: [
         {
           provide: RabbitMQHealthIndicator,
+          useValue: {},
+        },
+        {
+          provide: BullHealthIndicator,
           useValue: {},
         },
       ],

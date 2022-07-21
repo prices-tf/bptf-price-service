@@ -4,6 +4,7 @@ import {
   HealthCheckService,
   TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
+import { BullHealthIndicator } from './bull.health';
 import { RabbitMQHealthIndicator } from './rabbitmq.health';
 
 @Controller('health')
@@ -12,6 +13,7 @@ export class HealthController {
     private health: HealthCheckService,
     private db: TypeOrmHealthIndicator,
     private rabbitmqHealthIndicator: RabbitMQHealthIndicator,
+    private bullHealthIndicator: BullHealthIndicator,
   ) {}
 
   @Get()
@@ -20,6 +22,7 @@ export class HealthController {
     return this.health.check([
       () => this.db.pingCheck('database'),
       () => this.rabbitmqHealthIndicator.isHealthy('rabbitmq'),
+      () => this.bullHealthIndicator.isHealthy('queue'),
     ]);
   }
 }
