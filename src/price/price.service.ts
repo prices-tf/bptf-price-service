@@ -166,15 +166,18 @@ export class PriceService {
         .insert()
         .into(Price)
         .values(price)
-        .orUpdate([
-          'buyHalfScrap',
-          'buyKeys',
-          'buyKeyHalfScrap',
-          'sellHalfScrap',
-          'sellKeys',
-          'sellKeyHalfScrap',
-          'updatedAt',
-        ])
+        .orUpdate(
+          [
+            'buyHalfScrap',
+            'buyKeys',
+            'buyKeyHalfScrap',
+            'sellHalfScrap',
+            'sellKeys',
+            'sellKeyHalfScrap',
+            'updatedAt',
+          ],
+          ['sku'],
+        )
         .execute();
     });
 
