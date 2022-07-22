@@ -74,7 +74,7 @@ export class PriceService {
         },
       });
 
-      if (match !== undefined) {
+      if (match !== null) {
         throw new ConflictException(
           'The price has already been saved or a newer price exists',
         );
