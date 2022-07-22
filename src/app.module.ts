@@ -14,6 +14,7 @@ import { Price } from './price/entities/price.entity';
 import { BullModule } from '@nestjs/bullmq';
 import { RedisOptions } from 'ioredis';
 import { RepeatableJob } from './price/entities/repeatable-job.entity';
+import { QueueModule } from './queue/queue.module';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { RepeatableJob } from './price/entities/repeatable-job.entity';
     RabbitMQWrapperModule,
     HealthModule,
     PriceModule,
+    QueueModule,
   ],
 })
 export class AppModule {}
