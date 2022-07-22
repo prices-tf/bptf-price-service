@@ -10,6 +10,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { CreateRepeatingJobDto } from './dto/create-repeating-job.dto';
 import { GetPricesDto } from './dto/get-prices.dto';
 import { SavePriceDto } from './dto/save-price.dto';
 import { Price } from './entities/price.entity';
@@ -45,6 +46,34 @@ export class PriceController {
     }
 
     return price;
+  }
+
+  @Post('/sku/:sku/repeat')
+  private async enqueueRepeatingJob(
+    @Param('sku') sku: string,
+    @Body(
+      new ValidationPipe({
+        transform: true,
+      }),
+    )
+    body: CreateRepeatingJobDto,
+  ): Promise<void> {
+    await this.priceService.createRepeatingJob(
+      sku,
+      body.interval,
+      body.priority,
+    );
+  }
+
+  @Delete('/sku/:sku/repeat')
+  private async removeRepeatingJob(@Param('sku') sku: string): Promise<{
+    removed: boolean;
+  }> {
+    const removed = await this.priceService.removeRepeatingJob(sku);
+
+    return {
+      removed,
+    };
   }
 
   @Post()

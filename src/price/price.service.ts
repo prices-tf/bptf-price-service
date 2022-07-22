@@ -4,6 +4,7 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
+import { Queue, RepeatOptions } from 'bullmq';
 import {
   IPaginationOptions,
   paginate,
@@ -12,12 +13,18 @@ import {
 import { DataSource, MoreThanOrEqual } from 'typeorm';
 import { SavePriceDto } from './dto/save-price.dto';
 import { Price } from './entities/price.entity';
+import { JobsOptions } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
+import { QueueData } from './interfaces/queue.interface';
+import { RepeatableJob } from './entities/repeatable-job.entity';
 
 @Injectable()
 export class PriceService {
   constructor(
     private readonly amqpConnection: AmqpConnection,
     private readonly dataSource: DataSource,
+    @InjectQueue('prices')
+    private readonly queue: Queue<QueueData>,
   ) {}
 
   getBySKU(sku: string): Promise<Price> {
@@ -35,6 +42,80 @@ export class PriceService {
     return paginate<Price>(this.dataSource.getRepository(Price), options, {
       order: {
         updatedAt: order,
+      },
+    });
+  }
+
+  async createRepeatingJob(
+    sku: string,
+    every: number,
+    priority?: number,
+  ): Promise<void> {
+    const jobName = sku;
+
+    const data: QueueData = {
+      sku,
+    };
+
+    const repeatOptions: RepeatOptions = {
+      every,
+    };
+
+    const options: JobsOptions = {
+      priority,
+      repeat: repeatOptions,
+      removeOnComplete: true,
+      removeOnFail: true,
+    };
+
+    await this.dataSource
+      .getRepository(RepeatableJob)
+      .insert({
+        name: jobName,
+        options: repeatOptions,
+      })
+      .catch((err) => {
+        if (err.code == 23505) {
+          throw new ConflictException('Job already exists');
+        }
+
+        throw err;
+      });
+
+    const job = await this.queue.add(jobName, data, options);
+
+    await this.dataSource.getRepository(RepeatableJob).update(jobName, {
+      jobId: job.id,
+    });
+  }
+
+  async removeRepeatingJob(sku: string): Promise<boolean> {
+    // Get job by sku
+    const job = await this.getRepeatingJob(sku);
+
+    if (!job) {
+      // Job does not exist
+      return false;
+    }
+
+    // Remove repeatable job
+    const removed = this.queue.removeRepeatable(job.name, job.options);
+
+    if (job.jobId !== null) {
+      // Remove job created by repeatable job
+      await this.queue.remove(job.jobId);
+    }
+
+    // Remove job from database
+    await this.dataSource.getRepository(RepeatableJob).delete(job.name);
+
+    return removed;
+  }
+
+  private getRepeatingJob(sku: string): Promise<RepeatableJob> {
+    return this.dataSource.getRepository(RepeatableJob).findOne({
+      where: {
+        name: sku,
       },
     });
   }

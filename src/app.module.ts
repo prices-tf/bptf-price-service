@@ -13,6 +13,7 @@ import { PriceModule } from './price/price.module';
 import { Price } from './price/entities/price.entity';
 import { BullModule } from '@nestjs/bullmq';
 import { RedisOptions } from 'ioredis';
+import { RepeatableJob } from './price/entities/repeatable-job.entity';
 
 @Module({
   imports: [
@@ -35,7 +36,7 @@ import { RedisOptions } from 'ioredis';
           username: databaseConfig.username,
           password: databaseConfig.password,
           database: databaseConfig.database,
-          entities: [Price],
+          entities: [Price, RepeatableJob],
           autoLoadModels: true,
           synchronize: process.env.TYPEORM_SYNCRONIZE === 'true',
           keepConnectionAlive: true,
