@@ -46,6 +46,61 @@ export class PriceService {
     });
   }
 
+  async createJob(sku: string, priority?: number, replace?: boolean) {
+    const jobName = sku;
+    const jobId = sku;
+
+    const job = await this.queue.getJob(jobId);
+    let queued = !!job;
+
+    let state = !queued ? null : await job.getState();
+
+    if (replace === true && queued) {
+      if (state !== 'active' && job.opts.priority !== priority) {
+        // Job is not active and priorities are different, replace the job
+        await job.remove();
+        queued = false;
+      } else if (state === 'delayed' && job.attemptsMade > 0) {
+        // Job has been retried, promote it to "waiting"
+        await job.promote();
+        state = 'waiting';
+      }
+    }
+
+    if (queued) {
+      // Job is already in the queues
+      return {
+        enqueued: false,
+        state,
+      };
+    }
+
+    // Job is not in the queue, so we can add it
+    const data: QueueData = {
+      sku,
+    };
+
+    const options: JobsOptions = {
+      jobId,
+      priority: priority ?? undefined,
+      attempts: 5,
+      backoff: {
+        type: 'exponential',
+        delay: 5000,
+      },
+      removeOnComplete: true,
+      removeOnFail: true,
+    };
+
+    // Add job to the queue
+    await this.queue.add(jobName, data, options);
+
+    return {
+      enqueued: true,
+      state: 'waiting',
+    };
+  }
+
   async createRepeatingJob(
     sku: string,
     every: number,
