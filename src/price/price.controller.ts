@@ -35,6 +35,7 @@ export class PriceController {
         limit: query.limit ?? 100,
       },
       query.order,
+      query.orderBy,
     );
   }
 

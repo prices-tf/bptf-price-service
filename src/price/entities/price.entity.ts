@@ -2,6 +2,7 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity()
 @Index(['updatedAt'])
+@Index(['createdAt'])
 export class Price {
   @PrimaryColumn()
   sku: string;

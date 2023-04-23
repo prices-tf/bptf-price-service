@@ -6,6 +6,11 @@ enum OrderEnum {
   DESC = 'DESC',
 }
 
+enum OrderByEnum {
+  createdAt = 'createdAt',
+  updatedAt = 'updatedAt',
+}
+
 export class GetPricesDto {
   @IsOptional()
   @IsInt()
@@ -22,4 +27,8 @@ export class GetPricesDto {
   @IsOptional()
   @IsEnum(OrderEnum)
   readonly order: OrderEnum;
+
+  @IsOptional()
+  @IsEnum(OrderByEnum)
+  readonly orderBy: OrderByEnum = OrderByEnum.updatedAt;
 }

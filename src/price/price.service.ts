@@ -10,7 +10,7 @@ import {
   paginate,
   Pagination,
 } from 'nestjs-typeorm-paginate';
-import { DataSource, MoreThanOrEqual } from 'typeorm';
+import { DataSource, FindOptionsOrder, MoreThanOrEqual } from 'typeorm';
 import { SavePriceDto } from './dto/save-price.dto';
 import { Price } from './entities/price.entity';
 import { JobsOptions } from 'bullmq';
@@ -38,11 +38,13 @@ export class PriceService {
   paginate(
     options: IPaginationOptions,
     order?: 'ASC' | 'DESC',
+    orderBy?: 'createdAt' | 'updatedAt',
   ): Promise<Pagination<Price>> {
+    const orderOptions: FindOptionsOrder<Price> = {};
+    orderOptions[orderBy] = order;
+
     return paginate<Price>(this.dataSource.getRepository(Price), options, {
-      order: {
-        updatedAt: order,
-      },
+      order: orderOptions,
     });
   }
 
